@@ -15,11 +15,20 @@ A personal content aggregator for YouTube channels and blog RSS feeds. No algori
 - Add YouTube channels by URL (`@handle`, `/channel/UC...`, `/user/...`)
 - Add any blog RSS or Atom feed
 - Filter by channel / feed or by date range
+- Watch videos directly in-app via embedded player — no need to leave the page
 - Mark videos as watched, articles as read
 - Grid and list view for videos
 - Dark/light theme, persisted per browser
 - Auto-refresh on a configurable interval
 - Single Docker command to self-host
+
+## Screenshots
+
+![Videos](docs/screenshots/videos.jpg)
+
+![Blogs](docs/screenshots/blogs.jpg)
+
+![Manage](docs/screenshots/manage.jpg)
 
 ## Self-hosting with Docker (recommended)
 
