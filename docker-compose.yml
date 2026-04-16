@@ -1,0 +1,11 @@
+services:
+  noalgotube:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - noalgotube_data:/data
+    restart: unless-stopped
+
+volumes:
+  noalgotube_data:
