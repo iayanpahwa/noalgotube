@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>noalgotube</title>
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+  <meta property="og:title" content="noalgotube">
+  <meta property="og:description" content="Personal video and blog feed reader. No algorithm, no recommendations.">
+  <meta property="og:image" content="assets/og-image.png">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <span class="logo">
+    <img src="assets/logo.png" alt="" class="logo-img">
+    noalgotube
+  </span>
+  <nav>
+    <button id="nav-videos" class="active" onclick="navigate('videos')">Videos</button>
+    <button id="nav-blogs"              onclick="navigate('blogs')">Blogs</button>
+    <button id="nav-feeds"              onclick="navigate('feeds')">Manage</button>
+  </nav>
+  <button id="refresh-btn" onclick="refreshAll()">&#x21BB; Refresh</button>
+  <button id="theme-btn" onclick="toggleTheme()" title="Toggle light/dark mode">&#9788;</button>
+</header>
+
+<main>
+
+  <!-- ── Videos ─────────────────────────────────────────────────────────── -->
+  <div id="view-videos" class="view">
+    <div class="view-toolbar">
+  <div class="filter-wrap">
+    <select id="channel-filter" class="filter-select" onchange="onChannelFilterChange()">
+      <option value="">All Channels</option>
+    </select>
+  </div>
+  <div class="filter-wrap">
+    <select id="video-age-filter" class="filter-select" onchange="onVideoAgeChange()">
+      <option value="0">All time</option>
+      <option value="1">Today</option>
+      <option value="3">3 days</option>
+      <option value="7">7 days</option>
+      <option value="14">14 days</option>
+      <option value="30">30 days</option>
+    </select>
+  </div>
+  <div class="btn-group">
+    <button id="view-grid-btn" class="view-btn active" onclick="setViewMode('grid')" title="Grid view">&#9783;</button>
+    <button id="view-list-btn" class="view-btn" onclick="setViewMode('list')" title="List view">&#9776;</button>
+  </div>
+  <button id="hide-watched-btn" class="toggle-btn" onclick="toggleHideWatched()">Hide watched</button>
+  <span id="video-count" class="count-label"></span>
+</div>
+    <div id="video-grid"></div>
+  </div>
+
+  <!-- ── Blogs ──────────────────────────────────────────────────────────── -->
+  <div id="view-blogs" class="view" hidden>
+    <div class="view-toolbar">
+  <div class="filter-wrap">
+    <select id="feed-filter" class="filter-select" onchange="onFeedFilterChange()">
+      <option value="">All Feeds</option>
+    </select>
+  </div>
+  <div class="filter-wrap">
+    <select id="article-age-filter" class="filter-select" onchange="onArticleAgeChange()">
+      <option value="0">All time</option>
+      <option value="1">Today</option>
+      <option value="3">3 days</option>
+      <option value="7">7 days</option>
+      <option value="14">14 days</option>
+      <option value="30">30 days</option>
+    </select>
+  </div>
+  <button id="hide-read-btn" class="toggle-btn" onclick="toggleHideRead()">Hide read</button>
+  <span id="article-count" class="count-label"></span>
+</div>
+    <div id="article-list"></div>
+  </div>
+
+  <!-- ── Manage (channels + feeds) ─────────────────────────────────────── -->
+  <div id="view-feeds" class="view" hidden>
+    <div class="manage-page">
+
+      <div class="manage-section">
+        <h2>YouTube Channels</h2>
+        <p class="page-hint">Paste a channel URL — youtube.com/@handle, /channel/UC..., /user/... all work.</p>
+        <div class="add-form">
+          <input id="channel-input" type="url"
+                 placeholder="https://youtube.com/@channelname"
+                 autocomplete="off" spellcheck="false"
+                 onkeydown="if(event.key==='Enter') addChannel()">
+          <button id="add-channel-btn" class="btn-primary" onclick="addChannel()">Add</button>
+        </div>
+        <div id="channel-list"></div>
+      </div>
+
+      <div class="manage-section">
+        <h2>Blog Feeds</h2>
+        <p class="page-hint">Paste the RSS or Atom feed URL for any blog.</p>
+        <div class="add-form">
+          <input id="feed-input" type="url"
+                 placeholder="https://example.com/feed.xml"
+                 autocomplete="off" spellcheck="false"
+                 onkeydown="if(event.key==='Enter') addFeed()">
+          <button id="add-feed-btn" class="btn-primary" onclick="addFeed()">Add</button>
+        </div>
+        <div id="feed-list"></div>
+      </div>
+
+      <div class="manage-section">
+  <h2>Auto-refresh</h2>
+  <p class="page-hint">Automatically sync all feeds while the page is open.</p>
+  <div class="setting-row">
+    <label class="setting-label">Refresh every</label>
+    <select id="auto-refresh-select" class="filter-select" onchange="setAutoRefresh(this.value)">
+      <option value="0">Off</option>
+      <option value="1">1 hour</option>
+      <option value="6">6 hours</option>
+      <option value="12">12 hours</option>
+      <option value="24">24 hours</option>
+    </select>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</main>
+
+<!-- ── Video modal ─────────────────────────────────────────────────────────── -->
+<div id="video-modal" class="modal" hidden>
+  <div class="modal-backdrop" onclick="closeVideo()"></div>
+  <div class="modal-box video-modal-box">
+    <button class="modal-close" onclick="closeVideo()">&#x2715;</button>
+    <div class="video-player">
+      <iframe id="video-iframe"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen>
+      </iframe>
+    </div>
+    <div class="video-modal-footer">
+      <div id="video-modal-title" class="video-modal-title"></div>
+      <a id="video-yt-link" class="video-yt-link" href="#" target="_blank" rel="noopener">Open on YouTube &#x2197;</a>
+    </div>
+  </div>
+</div>
+
+<!-- ── Article modal ──────────────────────────────────────────────────────── -->
+<div id="article-modal" class="modal" hidden>
+  <div class="modal-backdrop" onclick="closeArticle()"></div>
+  <div class="modal-box article-modal-box">
+    <button class="modal-close" onclick="closeArticle()">&#x2715;</button>
+    <div class="article-reader" id="article-reader">
+      <h1 id="article-modal-title" class="article-reader-title"></h1>
+      <div id="article-modal-meta" class="article-reader-meta"></div>
+      <div id="article-modal-content" class="article-reader-content"></div>
+      <a id="article-read-more" class="article-read-more" href="#" target="_blank" rel="noopener">
+        Read original &#x2197;
+      </a>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
