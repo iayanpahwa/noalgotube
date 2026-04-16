@@ -1,0 +1,10 @@
+[project]
+name = "noalgotube"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi==0.115.6",
+    "uvicorn==0.32.1",
+    "feedparser==6.0.11",
+    "httpx==0.28.1",
+]
