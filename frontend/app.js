@@ -13,6 +13,8 @@ const state = {
   hideRead: false,
   videoAgeFilter: 0,   // days; 0 = all
   articleAgeFilter: 0,
+  videoSearch: '',
+  articleSearch: '',
   viewMode: 'grid',    // 'grid' | 'list'
   autoRefreshHours: 0,
   _autoRefreshTimer: null,
@@ -84,6 +86,16 @@ function applyDateFilter(items, days, field) {
   return items.filter(i => new Date(i[field]).getTime() >= cutoff);
 }
 
+// ── Nav badges ────────────────────────────────────────────────────────────────
+function updateNavBadges() {
+  const unwatched = state.videos.filter(v => !v.watched).length;
+  const unread    = state.articles.filter(a => !a.is_read).length;
+  const vb = document.getElementById('badge-videos');
+  const ab = document.getElementById('badge-blogs');
+  if (vb) vb.textContent = unwatched > 0 ? unwatched : '';
+  if (ab) ab.textContent = unread    > 0 ? unread    : '';
+}
+
 // ── Navigation ────────────────────────────────────────────────────────────────
 function navigate(view) {
   state.view = view;
@@ -145,6 +157,16 @@ function onVideoAgeChange() {
 
 function onArticleAgeChange() {
   state.articleAgeFilter = parseInt(document.getElementById('article-age-filter').value, 10);
+  renderArticles();
+}
+
+function onVideoSearchChange() {
+  state.videoSearch = document.getElementById('video-search').value.trim();
+  renderVideos();
+}
+
+function onArticleSearchChange() {
+  state.articleSearch = document.getElementById('article-search').value.trim();
   renderArticles();
 }
 
@@ -211,6 +233,10 @@ function renderVideos() {
     : state.videos;
   filtered = applyDateFilter(filtered, state.videoAgeFilter, 'published');
   if (state.hideWatched) filtered = filtered.filter(v => !v.watched);
+  if (state.videoSearch) {
+    const q = state.videoSearch.toLowerCase();
+    filtered = filtered.filter(v => v.title.toLowerCase().includes(q));
+  }
 
   document.getElementById('video-count').textContent = filtered.length
     ? `${filtered.length} video${filtered.length !== 1 ? 's' : ''}` : '';
@@ -237,6 +263,7 @@ function renderVideos() {
       </div>
     </div>
   `).join('');
+  updateNavBadges();
 }
 
 // ── Video modal ───────────────────────────────────────────────────────────────
@@ -285,6 +312,10 @@ function renderArticles() {
     : state.articles;
   filtered = applyDateFilter(filtered, state.articleAgeFilter, 'published');
   if (state.hideRead) filtered = filtered.filter(a => !a.is_read);
+  if (state.articleSearch) {
+    const q = state.articleSearch.toLowerCase();
+    filtered = filtered.filter(a => a.title.toLowerCase().includes(q));
+  }
 
   document.getElementById('article-count').textContent = filtered.length
     ? `${filtered.length} article${filtered.length !== 1 ? 's' : ''}` : '';
@@ -308,6 +339,7 @@ function renderArticles() {
         ${excerpt ? `<div class="article-excerpt">${esc(excerpt)}</div>` : ''}
       </div>`;
   }).join('');
+  updateNavBadges();
 }
 
 // ── Article modal ─────────────────────────────────────────────────────────────

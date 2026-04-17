@@ -1,6 +1,7 @@
 services:
   noalgotube:
     build: .
+    image: iayanpahwa/noalgotube:latest
     ports:
       - "8080:8080"
     volumes:
