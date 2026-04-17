@@ -144,7 +144,7 @@ requires-dist = [
     { name = "feedparser", specifier = "==6.0.11" },
     { name = "httpx", specifier = "==0.28.1" },
     { name = "uvicorn", specifier = "==0.32.1" },
-    { name = "yt-dlp", specifier = ">=2026.3.17" },
+    { name = "yt-dlp", specifier = "==2026.3.17" },
 ]
 
 [[package]]
