@@ -196,6 +196,12 @@ MIT — see [LICENSE](LICENSE).
 
 ## Changelog
 
+### v1.1.0 — 2026-04-17
+- PWA support — installable on Android and iOS home screens, works offline with cached content
+- Mobile-optimised UI — bottom-sheet modals, single-column video grid, wrapped toolbar, 44 px touch targets, safe-area insets for notched phones
+- Per-channel and per-feed item count — set how many recent videos/articles to show per source (global default + per-source override) in the Manage page
+- Blog sort toggle — switch between "Newest first" and "Oldest first" in the Blogs toolbar; preference persisted across sessions
+
 ### v1.0.0 — 2026-04-17
 - Search bar on Videos and Blogs views (live client-side filter by title)
 - Unwatched/unread count badges on Videos and Blogs nav tabs
