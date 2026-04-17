@@ -14,9 +14,10 @@ A personal content aggregator for YouTube channels and blog RSS feeds. No algori
 
 - Add YouTube channels by URL (`@handle`, `/channel/UC...`, `/user/...`)
 - Add any blog RSS or Atom feed
+- Search videos and articles by title
 - Filter by channel / feed or by date range
 - Watch videos directly in-app via embedded player — no need to leave the page
-- Mark videos as watched, articles as read
+- Mark videos as watched, articles as read — unread counts shown on nav tabs
 - Grid and list view for videos
 - Dark/light theme, persisted per browser
 - Auto-refresh on a configurable interval
@@ -30,9 +31,66 @@ A personal content aggregator for YouTube channels and blog RSS feeds. No algori
 
 ![Manage](docs/screenshots/manage.jpg)
 
-## Self-hosting with Docker (recommended)
+---
 
-**Requirements:** Docker and Docker Compose.
+## Self-hosting
+
+### Option 1 — Docker Hub (recommended, no clone needed)
+
+Pull and run the pre-built image directly:
+
+```bash
+docker run -d \
+  --name noalgotube \
+  --restart unless-stopped \
+  -p 8080:8080 \
+  -v noalgotube_data:/data \
+  iayanpahwa/noalgotube:latest
+```
+
+Open [http://localhost:8080](http://localhost:8080). Data is persisted in the `noalgotube_data` volume.
+
+To update to the latest image:
+
+```bash
+docker pull iayanpahwa/noalgotube:latest
+docker rm -f noalgotube
+docker run -d --name noalgotube --restart unless-stopped \
+  -p 8080:8080 -v noalgotube_data:/data iayanpahwa/noalgotube:latest
+```
+
+### Option 2 — Docker Compose with Docker Hub image
+
+Create a `docker-compose.yml`:
+
+```yaml
+services:
+  noalgotube:
+    image: iayanpahwa/noalgotube:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - noalgotube_data:/data
+    restart: unless-stopped
+
+volumes:
+  noalgotube_data:
+```
+
+Then run:
+
+```bash
+docker compose up -d
+```
+
+To update:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+### Option 3 — Build from source
 
 ```bash
 git clone https://github.com/iayanpahwa/noalgotube.git
@@ -40,28 +98,28 @@ cd noalgotube
 docker compose up --build -d
 ```
 
-Open [http://localhost:8080](http://localhost:8080).
+### Option 4 — Portainer
 
-Data is stored in a named Docker volume (`noalgotube_data`) so it survives container restarts and rebuilds.
+1. In Portainer, go to **Stacks → Add stack**
+2. Name it `noalgotube`
+3. Paste the compose snippet from Option 2 into the web editor
+4. Click **Deploy the stack**
+5. Open [http://your-host:8080](http://your-host:8080)
 
-To stop:
-```bash
-docker compose down
-```
+To update: go to the stack, click **Editor**, change `latest` to a specific version tag (e.g. `1.0.0`), and redeploy. Or pull the new image and restart the stack.
 
-To update to a newer version:
-```bash
-git pull
-docker compose up --build -d
-```
+---
 
 ### Expose on a custom port
 
-Edit `docker-compose.yml` and change the port mapping:
+Change the port mapping in your compose file:
+
 ```yaml
 ports:
   - "3000:8080"   # host port : container port
 ```
+
+---
 
 ## Local development
 
@@ -87,6 +145,8 @@ pip install -r requirements.txt
 uvicorn main:app --reload --port 8080
 ```
 
+---
+
 ## Usage
 
 1. **Manage** tab — add YouTube channels or blog RSS feeds
@@ -94,8 +154,9 @@ uvicorn main:app --reload --port 8080
    - Blogs: paste the RSS/Atom feed URL directly (`https://example.com/feed.xml`)
 2. **Videos** tab — browse and watch videos; click a card to open the embedded player
 3. **Blogs** tab — browse and read articles; click a card to open the article reader
-4. **Refresh** button — manually sync all feeds for new content
-5. **Auto-refresh** — configure in Manage to sync automatically while the page is open
+4. **Search** — type in the search box on Videos or Blogs to filter by title
+5. **Refresh** button — manually sync all feeds for new content
+6. **Auto-refresh** — configure in Manage to sync automatically while the page is open
 
 ## Configuration
 
