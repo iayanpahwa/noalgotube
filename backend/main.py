@@ -1,3 +1,4 @@
+import asyncio
 import os
 import re
 from contextlib import asynccontextmanager
@@ -126,11 +127,43 @@ async def resolve_channel_id(url: str) -> tuple[str, str]:
         if ok:
             return channel_id, name or channel_id
 
+    # RSS is down globally — fall back to yt-dlp for the best candidate
+    if unique:
+        channel_id = unique[0][1]
+        print(f"[resolve] RSS down, trying yt-dlp for {channel_id}")
+        try:
+            name, _ = await asyncio.get_event_loop().run_in_executor(
+                None, _ytdlp_fetch, channel_id
+            )
+            if name:
+                return channel_id, name
+        except Exception as e:
+            print(f"[resolve] yt-dlp fallback failed: {e}")
+
     raise ValueError(
-        "Could not find a working channel ID. All candidates returned 404 from YouTube's RSS. "
-        "Workaround: on the channel page, Ctrl+U (View Source), search for 'channel_id=', "
-        "copy the UC... value and paste it here directly."
+        "Could not resolve channel. YouTube RSS appears to be down — try again in a few minutes."
     )
+
+
+def _ytdlp_fetch(channel_id: str) -> tuple[str, list[dict]]:
+    """Sync: fetch channel name + up to 20 videos via yt-dlp. Returns (name, videos)."""
+    import yt_dlp
+    opts = {
+        'quiet': True,
+        'extract_flat': True,
+        'playlist_items': '1:20',
+        'skip_download': True,
+    }
+    url = f"https://www.youtube.com/channel/{channel_id}/videos"
+    with yt_dlp.YoutubeDL(opts) as ydl:
+        info = ydl.extract_info(url, download=False)
+    name = info.get('channel') or info.get('uploader') or ''
+    videos = [
+        {'video_id': e['id'], 'title': e.get('title', 'Untitled')}
+        for e in (info.get('entries') or [])
+        if e.get('id')
+    ]
+    return name, videos
 
 
 def _extract_video_id(entry) -> str:
@@ -152,25 +185,40 @@ def _extract_video_id(entry) -> str:
 
 
 async def sync_channel(channel_id: str) -> int:
-    """Fetch RSS, store videos. Returns count upserted. Never raises."""
+    """Fetch RSS (with yt-dlp fallback). Returns count upserted. Never raises."""
     try:
         rss = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
         async with httpx.AsyncClient(timeout=20) as client:
-            resp = await client.get(rss, headers={"User-Agent": _UA})
-        feed = feedparser.parse(resp.text)
-        count = 0
-        for entry in feed.entries[:20]:
-            video_id = _extract_video_id(entry)
-            if not video_id:
-                continue
-            title     = entry.get("title", "Untitled")
-            thumbnail = f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
-            published = entry.get("published", "")
-            db.upsert_video(channel_id, video_id, title, thumbnail, published)
-            count += 1
-        return count
+            resp = await client.get(rss, headers=_HEADERS)
+        if resp.status_code == 200:
+            feed = feedparser.parse(resp.text)
+            count = 0
+            for entry in feed.entries[:20]:
+                video_id = _extract_video_id(entry)
+                if not video_id:
+                    continue
+                title     = entry.get("title", "Untitled")
+                thumbnail = f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
+                published = entry.get("published", "")
+                db.upsert_video(channel_id, video_id, title, thumbnail, published)
+                count += 1
+            if count > 0:
+                return count
     except Exception as exc:
-        print(f"[sync_channel] {channel_id} failed: {exc}")
+        print(f"[sync_channel] RSS failed for {channel_id}: {exc}")
+
+    # RSS unavailable — fall back to yt-dlp
+    try:
+        print(f"[sync_channel] falling back to yt-dlp for {channel_id}")
+        _, videos = await asyncio.get_event_loop().run_in_executor(
+            None, _ytdlp_fetch, channel_id
+        )
+        for v in videos:
+            thumbnail = f"https://img.youtube.com/vi/{v['video_id']}/hqdefault.jpg"
+            db.upsert_video(channel_id, v['video_id'], v['title'], thumbnail, '')
+        return len(videos)
+    except Exception as exc:
+        print(f"[sync_channel] yt-dlp fallback failed for {channel_id}: {exc}")
         return 0
 
 
