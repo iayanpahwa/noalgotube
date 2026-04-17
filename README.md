@@ -21,6 +21,7 @@ A personal content aggregator for YouTube channels and blog RSS feeds. No algori
 - Grid and list view for videos
 - Dark/light theme, persisted per browser
 - Auto-refresh on a configurable interval
+- Resilient YouTube sync — falls back to yt-dlp automatically when YouTube RSS is unavailable
 - Single Docker command to self-host
 
 ## Screenshots
@@ -171,11 +172,33 @@ Docker sets `DB_PATH=/data/noalgotube.db` automatically, mounted to the `noalgot
 
 ## Stack
 
-- **Backend:** Python 3.12, FastAPI, uvicorn
-- **Database:** SQLite (no external DB required)
-- **RSS:** feedparser + httpx
+- **Backend:** Python 3.12, [FastAPI](https://fastapi.tiangolo.com), [uvicorn](https://www.uvicorn.org)
+- **Database:** SQLite (built-in, no external DB required)
+- **RSS:** [feedparser](https://feedparser.readthedocs.io) + [httpx](https://www.python-httpx.org)
+- **YouTube fallback:** [yt-dlp](https://github.com/yt-dlp/yt-dlp)
 - **Frontend:** Vanilla HTML/CSS/JS — no npm, no build step
+
+## Credits
+
+noalgotube is built on top of several excellent open-source projects:
+
+- **[FastAPI](https://github.com/tiangolo/fastapi)** by Sebastián Ramírez — the backend API framework
+- **[feedparser](https://github.com/kurtmckee/feedparser)** by Kurt McKee — RSS/Atom feed parsing
+- **[httpx](https://github.com/encode/httpx)** by Encode — async HTTP client
+- **[yt-dlp](https://github.com/yt-dlp/yt-dlp)** by the yt-dlp contributors — YouTube fallback when RSS is unavailable
+- **[uvicorn](https://github.com/encode/uvicorn)** by Encode — ASGI server
 
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+---
+
+## Changelog
+
+### v1.0.0 — 2026-04-17
+- Search bar on Videos and Blogs views (live client-side filter by title)
+- Unwatched/unread count badges on Videos and Blogs nav tabs
+- yt-dlp fallback for channel resolution and video sync when YouTube RSS is unavailable
+- Multi-arch Docker image published to Docker Hub (`iayanpahwa/noalgotube`, amd64 + arm64)
+- Docker Hub, Docker Compose, and Portainer deployment instructions
