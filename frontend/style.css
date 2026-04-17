@@ -323,6 +323,28 @@ main { min-height: calc(100vh - var(--header-h)); }
 .list-item-name  { font-size: 13px; color: var(--text); }
 .list-item-meta  { font-size: 11px; color: var(--text-muted); margin-top: 2px; word-break: break-all; }
 
+.list-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.limit-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  width: 72px;
+  text-align: center;
+}
+.limit-select:focus { outline: none; border-color: #444; }
+
 .btn-delete {
   background: none;
   border: none;

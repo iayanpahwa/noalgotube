@@ -18,6 +18,8 @@ const state = {
   viewMode: 'grid',    // 'grid' | 'list'
   autoRefreshHours: 0,
   _autoRefreshTimer: null,
+  itemsPerChannel: { global: 5 },
+  itemsPerFeed:    { global: 5 },
 };
 
 // ── API ───────────────────────────────────────────────────────────────────────
@@ -78,6 +80,59 @@ function toast(msg, type = 'info') {
   el.textContent = msg;
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 3500);
+}
+
+// ── Item limits (per-channel / per-feed) ──────────────────────────────────────
+function loadItemLimits() {
+  try {
+    state.itemsPerChannel = JSON.parse(localStorage.getItem('itemsPerChannel') || '{"global":5}');
+    state.itemsPerFeed    = JSON.parse(localStorage.getItem('itemsPerFeed')    || '{"global":5}');
+  } catch { /* keep defaults */ }
+}
+
+function saveItemLimits() {
+  localStorage.setItem('itemsPerChannel', JSON.stringify(state.itemsPerChannel));
+  localStorage.setItem('itemsPerFeed',    JSON.stringify(state.itemsPerFeed));
+}
+
+function getChannelLimit(channelId) {
+  return Number(state.itemsPerChannel[channelId] ?? state.itemsPerChannel.global ?? 5);
+}
+
+function getFeedLimit(feedId) {
+  return Number(state.itemsPerFeed[String(feedId)] ?? state.itemsPerFeed.global ?? 5);
+}
+
+function setGlobalChannelLimit(val) {
+  state.itemsPerChannel.global = parseInt(val, 10);
+  saveItemLimits();
+  renderVideos();
+}
+
+function setGlobalFeedLimit(val) {
+  state.itemsPerFeed.global = parseInt(val, 10);
+  saveItemLimits();
+  renderArticles();
+}
+
+function setChannelLimit(channelId, val) {
+  if (val === '') {
+    delete state.itemsPerChannel[channelId];
+  } else {
+    state.itemsPerChannel[channelId] = parseInt(val, 10);
+  }
+  saveItemLimits();
+  renderVideos();
+}
+
+function setFeedLimit(feedId, val) {
+  if (val === '') {
+    delete state.itemsPerFeed[String(feedId)];
+  } else {
+    state.itemsPerFeed[String(feedId)] = parseInt(val, 10);
+  }
+  saveItemLimits();
+  renderArticles();
 }
 
 function applyDateFilter(items, days, field) {
@@ -228,9 +283,21 @@ async function loadVideos() {
 function renderVideos() {
   const grid = document.getElementById('video-grid');
 
-  let filtered = state.channelFilter
-    ? state.videos.filter(v => v.channel_id === state.channelFilter)
-    : state.videos;
+  let filtered;
+  if (state.channelFilter) {
+    const limit = getChannelLimit(state.channelFilter);
+    filtered = state.videos.filter(v => v.channel_id === state.channelFilter);
+    if (limit > 0) filtered = filtered.slice(0, limit);
+  } else {
+    const byChannel = {};
+    for (const v of state.videos) (byChannel[v.channel_id] ??= []).push(v);
+    filtered = [];
+    for (const [cid, vids] of Object.entries(byChannel)) {
+      const limit = getChannelLimit(cid);
+      filtered.push(...(limit > 0 ? vids.slice(0, limit) : vids));
+    }
+    filtered.sort((a, b) => new Date(b.published) - new Date(a.published));
+  }
   filtered = applyDateFilter(filtered, state.videoAgeFilter, 'published');
   if (state.hideWatched) filtered = filtered.filter(v => !v.watched);
   if (state.videoSearch) {
@@ -307,9 +374,21 @@ async function loadArticles() {
 function renderArticles() {
   const list = document.getElementById('article-list');
 
-  let filtered = state.feedFilter
-    ? state.articles.filter(a => String(a.feed_id) === state.feedFilter)
-    : state.articles;
+  let filtered;
+  if (state.feedFilter) {
+    const limit = getFeedLimit(state.feedFilter);
+    filtered = state.articles.filter(a => String(a.feed_id) === state.feedFilter);
+    if (limit > 0) filtered = filtered.slice(0, limit);
+  } else {
+    const byFeed = {};
+    for (const a of state.articles) (byFeed[a.feed_id] ??= []).push(a);
+    filtered = [];
+    for (const [fid, arts] of Object.entries(byFeed)) {
+      const limit = getFeedLimit(fid);
+      filtered.push(...(limit > 0 ? arts.slice(0, limit) : arts));
+    }
+    filtered.sort((a, b) => new Date(b.published) - new Date(a.published));
+  }
   filtered = applyDateFilter(filtered, state.articleAgeFilter, 'published');
   if (state.hideRead) filtered = filtered.filter(a => !a.is_read);
   if (state.articleSearch) {
@@ -388,23 +467,40 @@ function closeArticle() {
 function renderManagePage() {
   renderChannelsList();
   renderFeedsList();
-  // restore auto-refresh select
   const arSelect = document.getElementById('auto-refresh-select');
   if (arSelect) arSelect.value = String(state.autoRefreshHours);
+  const icSelect = document.getElementById('items-per-channel-select');
+  if (icSelect) icSelect.value = String(state.itemsPerChannel.global ?? 5);
+  const ifSelect = document.getElementById('items-per-feed-select');
+  if (ifSelect) ifSelect.value = String(state.itemsPerFeed.global ?? 5);
 }
 
 function renderChannelsList() {
   const el = document.getElementById('channel-list');
   if (!el) return;
   el.innerHTML = state.channels.length
-    ? state.channels.map(c => `
+    ? state.channels.map(c => {
+        const cur = state.itemsPerChannel[c.channel_id];
+        const sel = v => (cur !== undefined ? String(cur) : '') === v ? 'selected' : '';
+        return `
         <div class="list-item">
-          <div>
+          <div style="min-width:0">
             <div class="list-item-name">${esc(c.name)}</div>
             <div class="list-item-meta">${esc(c.channel_id)}</div>
           </div>
-          <button class="btn-delete" onclick="deleteChannel('${esc(c.channel_id)}')" title="Remove">&times;</button>
-        </div>`).join('')
+          <div class="list-item-actions">
+            <select class="limit-select" title="Videos to show" onchange="setChannelLimit('${esc(c.channel_id)}', this.value)">
+              <option value="" ${sel('')}>default</option>
+              <option value="3"  ${sel('3')}>3</option>
+              <option value="5"  ${sel('5')}>5</option>
+              <option value="10" ${sel('10')}>10</option>
+              <option value="20" ${sel('20')}>20</option>
+              <option value="0"  ${sel('0')}>all</option>
+            </select>
+            <button class="btn-delete" onclick="deleteChannel('${esc(c.channel_id)}')" title="Remove">&times;</button>
+          </div>
+        </div>`;
+      }).join('')
     : '<p class="empty-list">No channels added yet.</p>';
 }
 
@@ -412,14 +508,28 @@ function renderFeedsList() {
   const el = document.getElementById('feed-list');
   if (!el) return;
   el.innerHTML = state.feeds.length
-    ? state.feeds.map(f => `
+    ? state.feeds.map(f => {
+        const cur = state.itemsPerFeed[String(f.id)];
+        const sel = v => (cur !== undefined ? String(cur) : '') === v ? 'selected' : '';
+        return `
         <div class="list-item">
           <div style="min-width:0">
             <div class="list-item-name">${esc(f.title)}</div>
             <div class="list-item-meta">${esc(f.url)}</div>
           </div>
-          <button class="btn-delete" onclick="deleteFeed(${f.id})" title="Remove">&times;</button>
-        </div>`).join('')
+          <div class="list-item-actions">
+            <select class="limit-select" title="Articles to show" onchange="setFeedLimit(${f.id}, this.value)">
+              <option value="" ${sel('')}>default</option>
+              <option value="3"  ${sel('3')}>3</option>
+              <option value="5"  ${sel('5')}>5</option>
+              <option value="10" ${sel('10')}>10</option>
+              <option value="20" ${sel('20')}>20</option>
+              <option value="0"  ${sel('0')}>all</option>
+            </select>
+            <button class="btn-delete" onclick="deleteFeed(${f.id})" title="Remove">&times;</button>
+          </div>
+        </div>`;
+      }).join('')
     : '<p class="empty-list">No feeds added yet.</p>';
 }
 
@@ -582,6 +692,7 @@ document.addEventListener('keydown', e => {
   state.feeds    = feeds;
 
   // Restore persisted preferences
+  loadItemLimits();
   applyTheme(localStorage.getItem('theme') || 'dark');
   state.hideWatched = localStorage.getItem('hideWatched') === '1';
   state.hideRead = localStorage.getItem('hideRead') === '1';
