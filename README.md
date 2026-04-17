@@ -196,6 +196,10 @@ MIT — see [LICENSE](LICENSE).
 
 ## Changelog
 
+### v1.1.2 — 2026-04-17
+- Fix: items-per-source setting now persists correctly across page refresh
+- Fix: browser refresh stays on the same tab (Videos / Blogs / Manage) instead of always going back to Videos
+
 ### v1.1.0 — 2026-04-17
 - PWA support — installable on Android and iOS home screens, works offline with cached content
 - Mobile-optimised UI — bottom-sheet modals, single-column video grid, wrapped toolbar, 44 px touch targets, safe-area insets for notched phones
