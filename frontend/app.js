@@ -20,6 +20,7 @@ const state = {
   _autoRefreshTimer: null,
   itemsPerChannel: { global: 5 },
   itemsPerFeed:    { global: 5 },
+  articleSortDir: 'desc',  // 'desc' = newest first, 'asc' = oldest first
 };
 
 // ── API ───────────────────────────────────────────────────────────────────────
@@ -232,6 +233,14 @@ function toggleHideWatched() {
   renderVideos();
 }
 
+function toggleArticleSort() {
+  state.articleSortDir = state.articleSortDir === 'desc' ? 'asc' : 'desc';
+  localStorage.setItem('articleSortDir', state.articleSortDir);
+  const btn = document.getElementById('article-sort-btn');
+  if (btn) btn.textContent = state.articleSortDir === 'desc' ? 'Newest first' : 'Oldest first';
+  renderArticles();
+}
+
 function toggleHideRead() {
   state.hideRead = !state.hideRead;
   document.getElementById('hide-read-btn').classList.toggle('on', state.hideRead);
@@ -395,6 +404,8 @@ function renderArticles() {
     const q = state.articleSearch.toLowerCase();
     filtered = filtered.filter(a => a.title.toLowerCase().includes(q));
   }
+
+  if (state.articleSortDir === 'asc') filtered = [...filtered].reverse();
 
   document.getElementById('article-count').textContent = filtered.length
     ? `${filtered.length} article${filtered.length !== 1 ? 's' : ''}` : '';
@@ -698,10 +709,13 @@ document.addEventListener('keydown', e => {
   state.hideRead = localStorage.getItem('hideRead') === '1';
   state.viewMode = localStorage.getItem('viewMode') || 'grid';
   state.autoRefreshHours = parseInt(localStorage.getItem('autoRefreshHours') || '0', 10);
+  state.articleSortDir = localStorage.getItem('articleSortDir') || 'desc';
 
   // Apply restored preferences to UI
   if (state.hideWatched) document.getElementById('hide-watched-btn')?.classList.add('on');
   if (state.hideRead) document.getElementById('hide-read-btn')?.classList.add('on');
+  const sortBtn = document.getElementById('article-sort-btn');
+  if (sortBtn) sortBtn.textContent = state.articleSortDir === 'asc' ? 'Oldest first' : 'Newest first';
   setViewMode(state.viewMode);
   if (state.autoRefreshHours > 0) setAutoRefresh(String(state.autoRefreshHours));
 
