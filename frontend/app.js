@@ -155,6 +155,7 @@ function updateNavBadges() {
 // ── Navigation ────────────────────────────────────────────────────────────────
 function navigate(view) {
   state.view = view;
+  localStorage.setItem('view', view);
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
   document.getElementById(`nav-${view}`).classList.add('active');
   document.querySelectorAll('.view').forEach(v => v.setAttribute('hidden', ''));
@@ -704,6 +705,12 @@ document.addEventListener('keydown', e => {
 
   // Restore persisted preferences
   loadItemLimits();
+  // Sync global items-per-source selects to stored values immediately —
+  // renderManagePage() would do this too, but only when the user navigates to Manage
+  const _icSel = document.getElementById('items-per-channel-select');
+  if (_icSel) _icSel.value = String(state.itemsPerChannel.global ?? 5);
+  const _ifSel = document.getElementById('items-per-feed-select');
+  if (_ifSel) _ifSel.value = String(state.itemsPerFeed.global ?? 5);
   applyTheme(localStorage.getItem('theme') || 'dark');
   state.hideWatched = localStorage.getItem('hideWatched') === '1';
   state.hideRead = localStorage.getItem('hideRead') === '1';
@@ -723,6 +730,10 @@ document.addEventListener('keydown', e => {
   populateFeedFilter();
   renderVideos();
   renderArticles();
+
+  // Restore last active view (navigate also calls renderManagePage if view is 'feeds')
+  const savedViews = ['videos', 'blogs', 'feeds'];
+  navigate(savedViews.includes(localStorage.getItem('view')) ? localStorage.getItem('view') : 'videos');
 
   // Offline indicator
   const offlineBanner = document.getElementById('offline-banner');
