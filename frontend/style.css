@@ -687,3 +687,85 @@ html[data-theme="light"] .article-reader-content a        { color: #666; }
 html[data-theme="light"] .article-reader-content pre      { background: #efefef; }
 html[data-theme="light"] .article-reader-content code     { background: #e8e8e8; }
 html[data-theme="light"] #theme-btn:hover                 { border-color: #aaa; }
+
+/* ── Offline banner ──────────────────────────────────────────────────────── */
+
+#offline-banner {
+  background: #2a1f00;
+  color: #f0b429;
+  text-align: center;
+  font-size: 12px;
+  padding: 6px 20px;
+  border-bottom: 1px solid #5c4200;
+}
+
+/* ── Safe area insets (notched phones / home indicator) ──────────────────── */
+
+header {
+  padding-left:  max(20px, env(safe-area-inset-left));
+  padding-right: max(20px, env(safe-area-inset-right));
+}
+
+/* In standalone PWA mode the header sits flush at the top of the screen */
+@media (display-mode: standalone) {
+  header {
+    height: calc(var(--header-h) + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+main { padding-bottom: env(safe-area-inset-bottom); }
+
+/* ── Mobile: toolbar wrapping ────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .view-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 14px 6px;
+  }
+  .filter-select { min-width: 0; }
+  .search-input  { width: auto; flex: 1 1 140px; }
+  .search-input:focus { width: auto; }
+  .count-label   { display: none; }
+}
+
+/* ── Mobile: touch targets ───────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  nav button   { padding: 10px 12px; min-height: 44px; }
+  #refresh-btn { padding: 10px 14px; min-height: 44px; }
+  #theme-btn   { width: 44px; height: 44px; }
+  .toggle-btn  { padding: 10px 12px; min-height: 44px; }
+  .btn-delete  { padding: 8px 10px; min-height: 44px; }
+}
+
+/* ── Mobile: single-column video grid ───────────────────────────────────── */
+
+@media (max-width: 480px) {
+  #video-grid {
+    grid-template-columns: 1fr;
+    padding: 6px 12px 16px;
+    gap: 10px;
+  }
+}
+
+/* ── Mobile: bottom-sheet modals ─────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+  .modal {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .video-modal-box {
+    width: 100vw;
+    border-radius: 12px 12px 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .article-modal-box {
+    width: 100vw;
+    max-height: 95vh;
+    border-radius: 12px 12px 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

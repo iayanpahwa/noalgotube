@@ -2,7 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)"  content="#0a0a0a">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f4f4">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="noalgotube">
   <title>noalgotube</title>
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
@@ -171,6 +177,11 @@
   </div>
 </div>
 
+<div id="offline-banner" hidden>You are offline — showing cached content</div>
+<script>
+  if ('serviceWorker' in navigator)
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+</script>
 <script src="app.js"></script>
 </body>
 </html>

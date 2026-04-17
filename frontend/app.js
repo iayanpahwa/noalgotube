@@ -598,4 +598,10 @@ document.addEventListener('keydown', e => {
   populateFeedFilter();
   renderVideos();
   renderArticles();
+
+  // Offline indicator
+  const offlineBanner = document.getElementById('offline-banner');
+  window.addEventListener('offline', () => offlineBanner?.removeAttribute('hidden'));
+  window.addEventListener('online',  () => offlineBanner?.setAttribute('hidden', ''));
+  if (!navigator.onLine) offlineBanner?.removeAttribute('hidden');
 })();
