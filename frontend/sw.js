@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE_NAME = 'noalgotube-v1';
+const CACHE_NAME = 'noalgotube-v2';
 const PRECACHE = [
   '/',
   '/index.html',

@@ -158,7 +158,16 @@ function updateNavBadges() {
 }
 
 // ── Navigation ────────────────────────────────────────────────────────────────
+function toggleMenu() {
+  document.querySelector('nav').classList.toggle('open');
+}
+
+function closeMenu() {
+  document.querySelector('nav').classList.remove('open');
+}
+
 function navigate(view) {
+  closeMenu();
   state.view = view;
   localStorage.setItem('view', view);
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
@@ -741,7 +750,11 @@ function applyTheme(theme) {
 
 // ── Keyboard shortcuts ────────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeVideo(); closeArticle(); }
+  if (e.key === 'Escape') { closeVideo(); closeArticle(); closeMenu(); }
+});
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('nav') && !e.target.closest('#menu-btn')) closeMenu();
 });
 
 // ── Init ──────────────────────────────────────────────────────────────────────

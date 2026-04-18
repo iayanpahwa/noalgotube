@@ -681,6 +681,45 @@ body.no-scroll { overflow: hidden; }
   white-space: nowrap;
 }
 
+/* ── Hamburger menu (mobile only) ────────────────────────────────────────── */
+
+#menu-btn { display: none; }
+
+@media (max-width: 640px) {
+  nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0; right: 0;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 8px 24px rgba(0,0,0,.3);
+    flex-direction: column;
+    padding: 6px 8px;
+    gap: 2px;
+    z-index: 99;
+  }
+  nav.open { display: flex; }
+  nav button { width: 100%; justify-content: flex-start; }
+
+  #menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    width: 36px; height: 36px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    flex-shrink: 0;
+    transition: color .15s, border-color .15s;
+  }
+  #menu-btn:hover { color: var(--text); border-color: #444; }
+}
+
 /* ── Theme toggle ────────────────────────────────────────────────────────── */
 
 #theme-btn {
