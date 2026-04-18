@@ -196,6 +196,15 @@ MIT — see [LICENSE](LICENSE).
 
 ## Changelog
 
+### v1.2.0 — 2026-04-18
+- Mark unwatched / Mark unread — toggle watched or read state directly from the card (hover to reveal)
+- Mark all watched / Mark all read — clear the entire view in one click; respects the active channel/feed filter
+- Delete confirmation — channels and feeds now prompt before deletion to prevent accidental data loss
+- Mobile hamburger menu — nav collapses into a ☰ dropdown on small screens; closes on navigate or outside tap
+- Internal: persistent SQLite connection with WAL mode for better read/write concurrency
+- Fix: `asyncio.get_event_loop()` → `get_running_loop()` (Python 3.10+ deprecation)
+- Fix: initial feed sync failure no longer returns 500 on the add-feed endpoint
+
 ### v1.1.2 — 2026-04-17
 - Fix: items-per-source setting now persists correctly across page refresh
 - Fix: browser refresh stays on the same tab (Videos / Blogs / Manage) instead of always going back to Videos
