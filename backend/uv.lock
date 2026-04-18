@@ -128,7 +128,7 @@ wheels = [
 
 [[package]]
 name = "noalgotube"
-version = "1.0.0"
+version = "1.1.2"
 source = { virtual = "." }
 dependencies = [
     { name = "fastapi" },
