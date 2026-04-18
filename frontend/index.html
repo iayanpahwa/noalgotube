@@ -61,6 +61,7 @@
     <button id="view-list-btn" class="view-btn" onclick="setViewMode('list')" title="List view">&#9776;</button>
   </div>
   <button id="hide-watched-btn" class="toggle-btn" onclick="toggleHideWatched()">Hide watched</button>
+  <button class="toggle-btn" onclick="markAllWatched()">Mark all watched</button>
   <input id="video-search" class="search-input" type="search" placeholder="Search videos…" oninput="onVideoSearchChange()">
   <span id="video-count" class="count-label"></span>
 </div>
@@ -87,6 +88,7 @@
   </div>
   <button id="article-sort-btn" class="toggle-btn" onclick="toggleArticleSort()">Newest first</button>
   <button id="hide-read-btn" class="toggle-btn" onclick="toggleHideRead()">Hide read</button>
+  <button class="toggle-btn" onclick="markAllRead()">Mark all read</button>
   <input id="article-search" class="search-input" type="search" placeholder="Search articles…" oninput="onArticleSearchChange()">
   <span id="article-count" class="count-label"></span>
 </div>

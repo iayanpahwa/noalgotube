@@ -672,6 +672,29 @@ async function reloadFeedData() {
   renderFeedsList();
 }
 
+// ── Mark all ─────────────────────────────────────────────────────────────────
+async function markAllWatched() {
+  const toMark = state.videos.filter(v =>
+    !v.watched && (!state.channelFilter || v.channel_id === state.channelFilter)
+  );
+  if (!toMark.length) { toast('Nothing to mark', 'info'); return; }
+  toMark.forEach(v => { v.watched = true; });
+  renderVideos();
+  await Promise.all(toMark.map(v => api.patch(`/api/videos/${v.video_id}/watched`)));
+  toast(`Marked ${toMark.length} video${toMark.length !== 1 ? 's' : ''} watched`, 'success');
+}
+
+async function markAllRead() {
+  const toMark = state.articles.filter(a =>
+    !a.is_read && (!state.feedFilter || String(a.feed_id) === state.feedFilter)
+  );
+  if (!toMark.length) { toast('Nothing to mark', 'info'); return; }
+  toMark.forEach(a => { a.is_read = 1; });
+  renderArticles();
+  await Promise.all(toMark.map(a => api.patch(`/api/articles/${a.id}/read`)));
+  toast(`Marked ${toMark.length} article${toMark.length !== 1 ? 's' : ''} read`, 'success');
+}
+
 // ── Refresh ───────────────────────────────────────────────────────────────────
 async function refreshAll() {
   const btn = document.getElementById('refresh-btn');
