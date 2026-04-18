@@ -367,9 +367,19 @@ def mark_watched(video_id: str):
     db.mark_video_watched(video_id)
     return {"ok": True}
 
+@app.patch("/api/videos/{video_id}/unwatched")
+def mark_unwatched(video_id: str):
+    db.mark_video_unwatched(video_id)
+    return {"ok": True}
+
 @app.patch("/api/articles/{article_id}/read")
 def mark_read(article_id: int):
     db.mark_article_read(article_id)
+    return {"ok": True}
+
+@app.patch("/api/articles/{article_id}/unread")
+def mark_unread(article_id: int):
+    db.mark_article_unread(article_id)
     return {"ok": True}
 
 

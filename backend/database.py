@@ -160,9 +160,17 @@ class Database:
         with self._conn() as conn:
             conn.execute("UPDATE videos SET watched=1 WHERE video_id=?", (video_id,))
 
+    def mark_video_unwatched(self, video_id: str):
+        with self._conn() as conn:
+            conn.execute("UPDATE videos SET watched=0 WHERE video_id=?", (video_id,))
+
     def mark_article_read(self, article_id: int):
         with self._conn() as conn:
             conn.execute("UPDATE articles SET is_read=1 WHERE id=?", (article_id,))
+
+    def mark_article_unread(self, article_id: int):
+        with self._conn() as conn:
+            conn.execute("UPDATE articles SET is_read=0 WHERE id=?", (article_id,))
 
     def upsert_article(self, feed_id, title, url, summary, content, published):
         now = datetime.utcnow().isoformat()
