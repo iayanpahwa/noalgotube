@@ -603,6 +603,8 @@ async function addChannel() {
 }
 
 async function deleteChannel(channelId) {
+  const ch = state.channels.find(c => c.channel_id === channelId);
+  if (!confirm(`Remove "${ch?.name ?? channelId}" and all its videos?`)) return;
   try {
     await api.del(`/api/channels/${channelId}`);
     toast('Channel removed');
@@ -649,6 +651,8 @@ async function addFeed() {
 }
 
 async function deleteFeed(feedId) {
+  const f = state.feeds.find(f => f.id === feedId);
+  if (!confirm(`Remove "${f?.title ?? feedId}" and all its articles?`)) return;
   try {
     await api.del(`/api/feeds/${feedId}`);
     toast('Feed removed');
