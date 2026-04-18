@@ -48,6 +48,11 @@ const api = {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return res.json();
   },
+  async patch(path) {
+    const res = await fetch(path, {method: 'PATCH'});
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  },
 };
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
@@ -336,7 +341,10 @@ function renderVideos() {
       </div>
       <div class="video-info">
         <div class="video-title">${esc(v.title)}</div>
-        <div class="video-meta">${esc(v.channel_name)} &middot; ${relDate(v.published)}</div>
+        <div class="video-meta">
+          ${esc(v.channel_name)} &middot; ${relDate(v.published)}
+          ${v.watched ? ` &middot; <button class="mark-btn" onclick="event.stopPropagation();markUnwatched('${esc(v.video_id)}')">Mark unwatched</button>` : ''}
+        </div>
       </div>
     </div>
   `).join('');
@@ -357,7 +365,7 @@ function openVideo(videoId, title) {
   const vid = state.videos.find(v => v.video_id === videoId);
   if (vid && !vid.watched) {
     vid.watched = true;
-    fetch(`/api/videos/${videoId}/watched`, {method: 'PATCH'});
+    api.patch(`/api/videos/${videoId}/watched`);
     renderVideos();
   }
 }
@@ -366,6 +374,14 @@ function closeVideo() {
   document.getElementById('video-iframe').src = '';
   document.getElementById('video-modal').setAttribute('hidden', '');
   document.body.classList.remove('no-scroll');
+}
+
+function markUnwatched(videoId) {
+  const vid = state.videos.find(v => v.video_id === videoId);
+  if (!vid) return;
+  vid.watched = false;
+  api.patch(`/api/videos/${videoId}/unwatched`);
+  renderVideos();
 }
 
 // ── Articles ──────────────────────────────────────────────────────────────────
@@ -426,7 +442,10 @@ function renderArticles() {
     return `
       <div class="article-card ${a.is_read ? 'is-read' : ''}" onclick="openArticle(${origIdx})">
         <div class="article-title">${esc(a.title)}</div>
-        <div class="article-meta">${esc(a.feed_title)} &middot; ${relDate(a.published)}</div>
+        <div class="article-meta">
+          ${esc(a.feed_title)} &middot; ${relDate(a.published)}
+          ${a.is_read ? ` &middot; <button class="mark-btn" onclick="event.stopPropagation();markUnread(${a.id})">Mark unread</button>` : ''}
+        </div>
         ${excerpt ? `<div class="article-excerpt">${esc(excerpt)}</div>` : ''}
       </div>`;
   }).join('');
@@ -464,7 +483,7 @@ function openArticle(idx) {
   const art = state.articles[idx];
   if (art && !art.is_read) {
     art.is_read = 1;
-    fetch(`/api/articles/${art.id}/read`, {method: 'PATCH'});
+    api.patch(`/api/articles/${art.id}/read`);
     renderArticles();
   }
 }
@@ -473,6 +492,14 @@ function closeArticle() {
   document.getElementById('article-modal').setAttribute('hidden', '');
   document.body.classList.remove('no-scroll');
   document.getElementById('article-modal-content').innerHTML = '';
+}
+
+function markUnread(articleId) {
+  const art = state.articles.find(a => a.id === articleId);
+  if (!art) return;
+  art.is_read = 0;
+  api.patch(`/api/articles/${articleId}/unread`);
+  renderArticles();
 }
 
 // ── Manage page (channels + feeds combined) ───────────────────────────────────
