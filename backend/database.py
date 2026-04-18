@@ -44,11 +44,21 @@ CREATE TABLE IF NOT EXISTS articles (
 
 
 class Database:
+    def __init__(self):
+        self._db = None
+
+    def _conn(self):
+        if self._db is None:
+            self._db = sqlite3.connect(DB_PATH, check_same_thread=False)
+            self._db.row_factory = sqlite3.Row
+        return self._db
+
     def init(self):
         os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-        with self._conn() as conn:
-            conn.executescript(_SCHEMA)
-            self._migrate(conn)
+        conn = self._conn()
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.executescript(_SCHEMA)
+        self._migrate(conn)
 
     def _migrate(self, conn):
         for table, col in [("videos", "watched INTEGER DEFAULT 0"), ("articles", "is_read INTEGER DEFAULT 0")]:
@@ -56,11 +66,6 @@ class Database:
             col_name = col.split()[0]
             if col_name not in cols:
                 conn.execute(f"ALTER TABLE {table} ADD COLUMN {col}")
-
-    def _conn(self):
-        conn = sqlite3.connect(DB_PATH)
-        conn.row_factory = sqlite3.Row
-        return conn
 
     # ── channels ──────────────────────────────────────────────────────────────
 
@@ -123,7 +128,7 @@ class Database:
     def get_videos(self):
         with self._conn() as conn:
             return [dict(r) for r in conn.execute("""
-                SELECT v.*, v.watched, c.name AS channel_name
+                SELECT v.*, c.name AS channel_name
                 FROM videos v
                 JOIN channels c ON c.channel_id = v.channel_id
                 ORDER BY v.published DESC
@@ -145,7 +150,7 @@ class Database:
     def get_articles(self):
         with self._conn() as conn:
             return [dict(r) for r in conn.execute("""
-                SELECT a.*, a.is_read, f.title AS feed_title
+                SELECT a.*, f.title AS feed_title
                 FROM articles a
                 JOIN feeds f ON f.id = a.feed_id
                 ORDER BY a.published DESC

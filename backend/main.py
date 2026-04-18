@@ -132,7 +132,7 @@ async def resolve_channel_id(url: str) -> tuple[str, str]:
         channel_id = unique[0][1]
         print(f"[resolve] RSS down, trying yt-dlp for {channel_id}")
         try:
-            name, _ = await asyncio.get_event_loop().run_in_executor(
+            name, _ = await asyncio.get_running_loop().run_in_executor(
                 None, _ytdlp_fetch, channel_id
             )
             if name:
@@ -210,7 +210,7 @@ async def sync_channel(channel_id: str) -> int:
     # RSS unavailable — fall back to yt-dlp
     try:
         print(f"[sync_channel] falling back to yt-dlp for {channel_id}")
-        _, videos = await asyncio.get_event_loop().run_in_executor(
+        _, videos = await asyncio.get_running_loop().run_in_executor(
             None, _ytdlp_fetch, channel_id
         )
         for v in videos:
@@ -324,7 +324,10 @@ async def add_feed(body: AddFeed):
     if db.feed_exists(url):
         raise HTTPException(409, "Feed already added")
     f = db.add_feed(url, title)
-    await sync_feed(f["id"], url)  # inline — articles ready immediately
+    try:
+        await sync_feed(f["id"], url)
+    except Exception as exc:
+        print(f"[add_feed] initial sync failed: {exc}")
     return f
 
 
